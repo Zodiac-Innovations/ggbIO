@@ -60,3 +60,37 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# OS and editor files
+**/.DS_Store
+**/._*
+**/Thumbs.db
+**/.idea/
+**/.vscode/
+*.swp
+
+# Swift and Xcode generated files
+**/.build/
+**/.swiftpm/xcode/package.xcworkspace/
+**/DerivedData/
+**/build/
+**/*.xcresult/
+**/*.xcactivitylog
+**/*.ipa
+**/*.app/
+
+# Android / Gradle generated files
+**/.gradle/
+**/.kotlin/
+**/.cxx/
+**/.externalNativeBuild/
+**/local.properties
+**/captures/
+**/outputs/
+**/intermediates/
+**/*.apk
+**/*.aab
+**/*.ap_
+**/*.dex
+**/*.class
+**/cmake-build-*/
