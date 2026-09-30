@@ -209,6 +209,22 @@ public protocol GGBVectorDrawingProtocol: AnyObject {
     /// Returns true when the drawer recognizes and handles the command.
     @discardableResult
     func drawSpecialData(type: String, data: String) -> Bool
+    /// Draws bitmap content using a material as its tint/mask paint.
+    /// Returns false when this backend does not implement painted bitmap drawing.
+    @discardableResult
+    func drawBitmap(
+        data: Data,
+        sourceRect: GGBRect?,
+        destinationRect: GGBRect,
+        opacity: GGBFloat,
+        material: GGBMaterial
+    ) -> Bool
+
+    /// Offers a specialized command together with its paint.
+    /// Returns false when the backend does not handle this painted command.
+    @discardableResult
+    func drawSpecialData(type: String, data: String, material: GGBMaterial) -> Bool
+
 }
 
 public extension GGBVectorDrawingProtocol {
@@ -220,3 +236,137 @@ public extension GGBVectorDrawingProtocol {
 
 /// Reusable drawing code that can target a native drawer or a recorder.
 public typealias GGBVectorDrawingClosure = (_ drawer: any GGBVectorDrawingProtocol) -> Void
+
+// MARK: - Direct Color and Material Drawing
+
+public extension GGBVectorDrawingProtocol {
+
+    func drawLine(from start: GGBPoint, to end: GGBPoint, material: GGBMaterial, thickness: GGBFloat = 1) {
+        drawLine(from: start, to: end, stroke: GGBVectorStroke(material: material, thickness: thickness))
+    }
+
+    func drawLine(from start: GGBPoint, to end: GGBPoint, color: GGBColor, thickness: GGBFloat = 1) {
+        drawLine(from: start, to: end, material: .color(color), thickness: thickness)
+    }
+
+    /// Draws this shape with independent outline and interior materials.
+    /// Nil omits the corresponding outline or fill.
+    func drawRectangle(in rect: GGBRect, strokeMaterial: GGBMaterial?, fillMaterial: GGBMaterial?, thickness: GGBFloat = 1) {
+        drawRectangle(in: rect, stroke: strokeMaterial.map { GGBVectorStroke(material: $0, thickness: thickness) }, fill: fillMaterial.map { GGBVectorFill(material: $0) })
+    }
+
+    func drawRectangle(in rect: GGBRect, strokeColor: GGBColor?, fillColor: GGBColor?, thickness: GGBFloat = 1) {
+        drawRectangle(in: rect, strokeMaterial: strokeColor.map { GGBMaterial.color($0) }, fillMaterial: fillColor.map { GGBMaterial.color($0) }, thickness: thickness)
+    }
+
+    /// Filled shapes use the material for their interior; unfilled shapes use it for their outline.
+    func drawRectangle(in rect: GGBRect, material: GGBMaterial, thickness: GGBFloat = 1, filled: Bool = true) {
+        drawRectangle(in: rect, strokeMaterial: filled ? nil : material, fillMaterial: filled ? material : nil, thickness: thickness)
+    }
+
+    func drawRectangle(in rect: GGBRect, color: GGBColor, thickness: GGBFloat = 1, filled: Bool = true) {
+        drawRectangle(in: rect, material: .color(color), thickness: thickness, filled: filled)
+    }
+
+    /// Draws this shape with independent outline and interior materials.
+    /// Nil omits the corresponding outline or fill.
+    func drawRoundedRectangle(in rect: GGBRect, cornerRadius: GGBFloat, strokeMaterial: GGBMaterial?, fillMaterial: GGBMaterial?, thickness: GGBFloat = 1) {
+        drawRoundedRectangle(in: rect, cornerRadius: cornerRadius, stroke: strokeMaterial.map { GGBVectorStroke(material: $0, thickness: thickness) }, fill: fillMaterial.map { GGBVectorFill(material: $0) })
+    }
+
+    func drawRoundedRectangle(in rect: GGBRect, cornerRadius: GGBFloat, strokeColor: GGBColor?, fillColor: GGBColor?, thickness: GGBFloat = 1) {
+        drawRoundedRectangle(in: rect, cornerRadius: cornerRadius, strokeMaterial: strokeColor.map { GGBMaterial.color($0) }, fillMaterial: fillColor.map { GGBMaterial.color($0) }, thickness: thickness)
+    }
+
+    /// Filled shapes use the material for their interior; unfilled shapes use it for their outline.
+    func drawRoundedRectangle(in rect: GGBRect, cornerRadius: GGBFloat, material: GGBMaterial, thickness: GGBFloat = 1, filled: Bool = true) {
+        drawRoundedRectangle(in: rect, cornerRadius: cornerRadius, strokeMaterial: filled ? nil : material, fillMaterial: filled ? material : nil, thickness: thickness)
+    }
+
+    func drawRoundedRectangle(in rect: GGBRect, cornerRadius: GGBFloat, color: GGBColor, thickness: GGBFloat = 1, filled: Bool = true) {
+        drawRoundedRectangle(in: rect, cornerRadius: cornerRadius, material: .color(color), thickness: thickness, filled: filled)
+    }
+
+    /// Draws this shape with independent outline and interior materials.
+    /// Nil omits the corresponding outline or fill.
+    func drawOval(in rect: GGBRect, strokeMaterial: GGBMaterial?, fillMaterial: GGBMaterial?, thickness: GGBFloat = 1) {
+        drawOval(in: rect, stroke: strokeMaterial.map { GGBVectorStroke(material: $0, thickness: thickness) }, fill: fillMaterial.map { GGBVectorFill(material: $0) })
+    }
+
+    func drawOval(in rect: GGBRect, strokeColor: GGBColor?, fillColor: GGBColor?, thickness: GGBFloat = 1) {
+        drawOval(in: rect, strokeMaterial: strokeColor.map { GGBMaterial.color($0) }, fillMaterial: fillColor.map { GGBMaterial.color($0) }, thickness: thickness)
+    }
+
+    /// Filled shapes use the material for their interior; unfilled shapes use it for their outline.
+    func drawOval(in rect: GGBRect, material: GGBMaterial, thickness: GGBFloat = 1, filled: Bool = true) {
+        drawOval(in: rect, strokeMaterial: filled ? nil : material, fillMaterial: filled ? material : nil, thickness: thickness)
+    }
+
+    func drawOval(in rect: GGBRect, color: GGBColor, thickness: GGBFloat = 1, filled: Bool = true) {
+        drawOval(in: rect, material: .color(color), thickness: thickness, filled: filled)
+    }
+
+    func drawArc(center: GGBPoint, radius: GGBFloat, startAngle: GGBFloat, endAngle: GGBFloat, direction: GGBVectorArcDirection, material: GGBMaterial, thickness: GGBFloat = 1) {
+        drawArc(center: center, radius: radius, startAngle: startAngle, endAngle: endAngle, direction: direction, stroke: GGBVectorStroke(material: material, thickness: thickness))
+    }
+
+    func drawArc(center: GGBPoint, radius: GGBFloat, startAngle: GGBFloat, endAngle: GGBFloat, direction: GGBVectorArcDirection, color: GGBColor, thickness: GGBFloat = 1) {
+        drawArc(center: center, radius: radius, startAngle: startAngle, endAngle: endAngle, direction: direction, material: .color(color), thickness: thickness)
+    }
+
+    /// Draws this shape with independent outline and interior materials.
+    /// Nil omits the corresponding outline or fill.
+    func drawPolygon(points: [GGBPoint], strokeMaterial: GGBMaterial?, fillMaterial: GGBMaterial?, thickness: GGBFloat = 1) {
+        drawPolygon(points: points, stroke: strokeMaterial.map { GGBVectorStroke(material: $0, thickness: thickness) }, fill: fillMaterial.map { GGBVectorFill(material: $0) })
+    }
+
+    func drawPolygon(points: [GGBPoint], strokeColor: GGBColor?, fillColor: GGBColor?, thickness: GGBFloat = 1) {
+        drawPolygon(points: points, strokeMaterial: strokeColor.map { GGBMaterial.color($0) }, fillMaterial: fillColor.map { GGBMaterial.color($0) }, thickness: thickness)
+    }
+
+    /// Filled shapes use the material for their interior; unfilled shapes use it for their outline.
+    func drawPolygon(points: [GGBPoint], material: GGBMaterial, thickness: GGBFloat = 1, filled: Bool = true) {
+        drawPolygon(points: points, strokeMaterial: filled ? nil : material, fillMaterial: filled ? material : nil, thickness: thickness)
+    }
+
+    func drawPolygon(points: [GGBPoint], color: GGBColor, thickness: GGBFloat = 1, filled: Bool = true) {
+        drawPolygon(points: points, material: .color(color), thickness: thickness, filled: filled)
+    }
+
+    func drawQuadraticBezier(from start: GGBPoint, control: GGBPoint, to end: GGBPoint, material: GGBMaterial, thickness: GGBFloat = 1) {
+        drawQuadraticBezier(from: start, control: control, to: end, stroke: GGBVectorStroke(material: material, thickness: thickness))
+    }
+
+    func drawQuadraticBezier(from start: GGBPoint, control: GGBPoint, to end: GGBPoint, color: GGBColor, thickness: GGBFloat = 1) {
+        drawQuadraticBezier(from: start, control: control, to: end, material: .color(color), thickness: thickness)
+    }
+
+    func drawCubicBezier(from start: GGBPoint, control1: GGBPoint, control2: GGBPoint, to end: GGBPoint, material: GGBMaterial, thickness: GGBFloat = 1) {
+        drawCubicBezier(from: start, control1: control1, control2: control2, to: end, stroke: GGBVectorStroke(material: material, thickness: thickness))
+    }
+
+    func drawCubicBezier(from start: GGBPoint, control1: GGBPoint, control2: GGBPoint, to end: GGBPoint, color: GGBColor, thickness: GGBFloat = 1) {
+        drawCubicBezier(from: start, control1: control1, control2: control2, to: end, material: .color(color), thickness: thickness)
+    }
+
+    /// Default implementations explicitly report unsupported painted bitmap/special operations.
+    @discardableResult
+    func drawBitmap(data: Data, sourceRect: GGBRect?, destinationRect: GGBRect, opacity: GGBFloat, material: GGBMaterial) -> Bool {
+        false
+    }
+
+    @discardableResult
+    func drawBitmap(data: Data, sourceRect: GGBRect?, destinationRect: GGBRect, opacity: GGBFloat, color: GGBColor) -> Bool {
+        drawBitmap(data: data, sourceRect: sourceRect, destinationRect: destinationRect, opacity: opacity, material: .color(color))
+    }
+
+    @discardableResult
+    func drawSpecialData(type: String, data: String, material: GGBMaterial) -> Bool {
+        false
+    }
+
+    @discardableResult
+    func drawSpecialData(type: String, data: String, color: GGBColor) -> Bool {
+        drawSpecialData(type: type, data: data, material: .color(color))
+    }
+}
