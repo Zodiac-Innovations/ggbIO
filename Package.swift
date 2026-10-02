@@ -10,8 +10,7 @@ let package = Package(
     ],
     targets: [
         .target(name: "GGBIO"),
-        .target(name: "GGBIOApple", dependencies: ["GGBIO"]),
-        .testTarget(name: "GGBIOTests", dependencies: ["GGBIO"])
+        .target(name: "GGBIOApple", dependencies: ["GGBIO"])
     ],
     swiftLanguageModes: [.v6]
 )
